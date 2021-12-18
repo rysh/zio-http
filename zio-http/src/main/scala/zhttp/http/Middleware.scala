@@ -70,6 +70,12 @@ object Middleware {
   def addCookie(cookie: Cookie): Middleware[Any, Nothing] = Middleware.addHeader(Header.setCookie(cookie))
 
   /**
+   * Sets cookie in response headers
+   */
+  def addCookieM[R, E](cookie: ZIO[R, E, Cookie]): Middleware[R, E] =
+    patchM((_, _) => cookie.mapBoth(Option(_), c => Patch.addHeader(Header.setCookie(c))))
+
+  /**
    * Adds the provided header and value to the response
    */
   def addHeader(name: String, value: String): Middleware[Any, Nothing] =
@@ -116,9 +122,7 @@ object Middleware {
   def basicAuth[R, E](u: String, p: String): Middleware[R, E] =
     basicAuth((user, password) => (user == u) && (password == p))
 
-  def addCookieM(cookie: UIO[Cookie]): Middleware[Any, Nothing] =
-    patchM((_, _) => cookie.map(c => Patch.addHeader(Header.setCookie(c))))
-  private def equalsIgnoreCase(a: Char, b: Char)                = a == b || toLowerCase(a) == toLowerCase(b)
+  private def equalsIgnoreCase(a: Char, b: Char) = a == b || toLowerCase(a) == toLowerCase(b)
   private def contentEqualsIgnoreCase(a: CharSequence, b: CharSequence): Boolean = {
     if (a == b)
       true
