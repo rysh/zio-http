@@ -1,8 +1,6 @@
 package zhttp.http
 
 import io.netty.handler.codec.http.HttpHeaderNames
-import io.netty.util.AsciiString
-import io.netty.util.AsciiString.toLowerCase
 import zhttp.http.CORS.DefaultCORSConfig
 import zhttp.http.HeaderExtension.Only
 import zhttp.http.Middleware.{Flag, RequestP}
@@ -10,8 +8,9 @@ import zio.clock.Clock
 import zio.console.Console
 import zio.duration.Duration
 import zio.{UIO, ZIO, clock, console}
-
 import java.io.IOException
+
+import zhttp.http.HeaderUtils.contentEqualsIgnoreCase
 
 /**
  * Middlewares for Http.
@@ -85,7 +84,10 @@ object Middleware {
    * Adds the provided header to the response
    */
   def addHeader(header: Header): Middleware[Any, Nothing] =
-    patch((_, _) => Patch.addHeaders(List(header)))
+    patch((_, _) => {
+      println(List(header))
+      Patch.addHeaders(List(header))
+    })
 
   /**
    * Adds the provided list of headers to the response
@@ -121,21 +123,6 @@ object Middleware {
    */
   def basicAuth[R, E](u: String, p: String): Middleware[R, E] =
     basicAuth((user, password) => (user == u) && (password == p))
-
-  private def equalsIgnoreCase(a: Char, b: Char) = a == b || toLowerCase(a) == toLowerCase(b)
-  private def contentEqualsIgnoreCase(a: CharSequence, b: CharSequence): Boolean = {
-    if (a == b)
-      true
-    else if (a.length() != b.length())
-      false
-    else if (a.isInstanceOf[AsciiString]) {
-      a.asInstanceOf[AsciiString].contentEqualsIgnoreCase(b)
-    } else if (b.isInstanceOf[AsciiString]) {
-      b.asInstanceOf[AsciiString].contentEqualsIgnoreCase(a)
-    } else {
-      (0 until a.length()).forall(i => equalsIgnoreCase(a.charAt(i), b.charAt(i)))
-    }
-  }
 
   /**
    * Creates a middleware to validate CSRF token from header and cookie

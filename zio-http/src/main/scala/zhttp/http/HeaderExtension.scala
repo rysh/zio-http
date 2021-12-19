@@ -4,13 +4,30 @@ import io.netty.handler.codec.http.{HttpHeaderNames, HttpHeaderValues, HttpUtil}
 import io.netty.util.AsciiString
 import io.netty.util.AsciiString.toLowerCase
 import zhttp.http.HeaderExtension.{BasicSchemeName, BearerSchemeName}
-
 import java.nio.charset.Charset
 import java.util.Base64
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
+private[zhttp] object HeaderUtils {
+  def contentEqualsIgnoreCase(a: CharSequence, b: CharSequence): Boolean = {
+    if (a == b)
+      true
+    else if (a.length() != b.length())
+      false
+    else if (a.isInstanceOf[AsciiString]) {
+      a.asInstanceOf[AsciiString].contentEqualsIgnoreCase(b)
+    } else if (b.isInstanceOf[AsciiString]) {
+      b.asInstanceOf[AsciiString].contentEqualsIgnoreCase(a)
+    } else {
+      (0 until a.length()).forall(i => equalsIgnoreCase(a.charAt(i), b.charAt(i)))
+    }
+  }
+  def equalsIgnoreCase(a: Char, b: Char)                                 = a == b || toLowerCase(a) == toLowerCase(b)
+}
+
 private[zhttp] trait HeaderExtension[+A] { self: A =>
+  import zhttp.http.HeaderUtils._
   final def addHeader(header: Header): A = addHeaders(List(header))
 
   final def addHeader(name: CharSequence, value: CharSequence): A = addHeader(Header(name, value))
@@ -117,20 +134,6 @@ private[zhttp] trait HeaderExtension[+A] { self: A =>
     getContentType
       .exists(v => value.contentEquals(v))
 
-  private def contentEqualsIgnoreCase(a: CharSequence, b: CharSequence): Boolean = {
-    if (a == b)
-      true
-    else if (a.length() != b.length())
-      false
-    else if (a.isInstanceOf[AsciiString]) {
-      a.asInstanceOf[AsciiString].contentEqualsIgnoreCase(b)
-    } else if (b.isInstanceOf[AsciiString]) {
-      b.asInstanceOf[AsciiString].contentEqualsIgnoreCase(a)
-    } else {
-      (0 until a.length()).forall(i => equalsIgnoreCase(a.charAt(i), b.charAt(i)))
-    }
-  }
-
   private def decodeHttpBasic(encoded: String): Option[(String, String)] = {
     val decoded    = new String(Base64.getDecoder.decode(encoded))
     val colonIndex = decoded.indexOf(":")
@@ -146,8 +149,6 @@ private[zhttp] trait HeaderExtension[+A] { self: A =>
       Some((username, password))
     }
   }
-
-  private def equalsIgnoreCase(a: Char, b: Char) = a == b || toLowerCase(a) == toLowerCase(b)
 }
 
 object HeaderExtension {
