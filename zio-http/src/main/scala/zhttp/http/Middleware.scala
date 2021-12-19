@@ -3,14 +3,14 @@ package zhttp.http
 import io.netty.handler.codec.http.HttpHeaderNames
 import zhttp.http.CORS.DefaultCORSConfig
 import zhttp.http.HeaderExtension.Only
+import zhttp.http.HeaderUtils.contentEqualsIgnoreCase
 import zhttp.http.Middleware.{Flag, RequestP}
 import zio.clock.Clock
 import zio.console.Console
 import zio.duration.Duration
 import zio.{UIO, ZIO, clock, console}
-import java.io.IOException
 
-import zhttp.http.HeaderUtils.contentEqualsIgnoreCase
+import java.io.IOException
 
 /**
  * Middlewares for Http.
@@ -84,10 +84,7 @@ object Middleware {
    * Adds the provided header to the response
    */
   def addHeader(header: Header): Middleware[Any, Nothing] =
-    patch((_, _) => {
-      println(List(header))
-      Patch.addHeaders(List(header))
-    })
+    patch((_, _) => Patch.addHeaders(List(header)))
 
   /**
    * Adds the provided list of headers to the response

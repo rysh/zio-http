@@ -4,6 +4,7 @@ import io.netty.handler.codec.http.{HttpHeaderNames, HttpHeaderValues, HttpUtil}
 import io.netty.util.AsciiString
 import io.netty.util.AsciiString.toLowerCase
 import zhttp.http.HeaderExtension.{BasicSchemeName, BearerSchemeName}
+
 import java.nio.charset.Charset
 import java.util.Base64
 import scala.util.control.NonFatal
