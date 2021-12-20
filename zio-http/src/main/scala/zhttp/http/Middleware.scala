@@ -122,7 +122,10 @@ object Middleware {
     basicAuth((user, password) => (user == u) && (password == p))
 
   /**
-   * Creates a middleware to validate CSRF token from header and cookie
+   * CSRF middleware : To prevent Cross-site request forgery attacks. This middleware is modeled after the double submit
+   * cookie pattern.
+   * @see
+   *   https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#double-submit-cookie
    */
   def csrf(headerName: String, cookieName: String) = {
     def getCSRFCookieValue(headers: List[Header], cookieName: String): Option[String] =
